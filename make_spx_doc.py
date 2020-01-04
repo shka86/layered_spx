@@ -112,8 +112,12 @@ def execute_spx():
     os.chdir(path_spx)
     print(pathlib.Path().cwd())
 
+    path_build = path_spx / pathlib.Path("build")
+    if path_build.exists():
+        shutil.rmtree(path_build)
+
     cmd = "make.bat html"
-    subprocess.Popen(cmd)
+    subprocess.call(cmd)
 
 
 def main():
