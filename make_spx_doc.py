@@ -3,11 +3,13 @@
 
 import os
 import sys
-import pathlib
 import textwrap
 import shutil
 import subprocess
 import json
+from pathlib import Path as p
+from distutils import dir_util as du
+
 
 with open("pathdefine.json", 'r', encoding='utf-8') as f:
     d = json.load(f)
@@ -23,15 +25,15 @@ def _listprint(lists):
 
 
 def listup_dir(search_path):
-    return [p.relative_to(search_path)
-            for p in search_path.iterdir()
-            if p.is_dir()]
+    return [x.relative_to(search_path)
+            for x in search_path.iterdir()
+            if x.is_dir()]
 
 
 def listup_docsrc(search_path):
-    return [p.relative_to(search_path)
-            for p in search_path.iterdir()
-            if (p.is_file() and (str(p).endswith(".md")) or (str(p).endswith(".rst")))]
+    return [x.relative_to(search_path)
+            for x in search_path.iterdir()
+            if (x.is_file() and (str(x).endswith(".md")) or (str(x).endswith(".rst")))]
 
 
 def generate_toc(toc_title, tocs):
@@ -76,7 +78,7 @@ def generate_spx_layer(path_tgt, if_top=False):
     else:
         idx_name = str(path_tgt.stem) + ".rst"
 
-    idx_name = pathlib.Path(idx_name)
+    idx_name = p(idx_name)
     path_idx = path_tgt / idx_name
 
     with open(path_idx, 'w', encoding="utf-8") as f:
@@ -84,7 +86,7 @@ def generate_spx_layer(path_tgt, if_top=False):
 
     # recursive
     for dr in list_dir:
-        print(pathlib.Path().cwd())
+        print(p().cwd())
         print(dr)
         generate_spx_layer(path_tgt / dr)
 
@@ -93,26 +95,31 @@ def update_spx_source(src=""):
     """Move a file tree to sphinx source. Old sources are deleted.
     """
 
-    # copy source
+    # delete old spx_prj source
+    p_spxsrc = p(spx_src_dir)
+    if p_spxsrc.is_dir():
+        shutil.rmtree(p_spxsrc)
+    p_spxsrc.mkdir()
+
+    # prepare new spx_prj source dir
+    p_spxsrc_org = p(str(p_spxsrc) + "_org")
+    list_src = p_spxsrc_org.glob("**/*")
+    _listprint(list_src)
+    du.copy_tree(str(p_spxsrc_org), str(p_spxsrc))
+
+    # copy doc source
     list_src = src.glob("**/*")
     _listprint(list_src)
 
-    # copy destination
-    dst = spx_src_dir
-    dst = pathlib.Path(dst)
-
-    if dst.exists():
-        shutil.rmtree(dst)
-
-    shutil.copytree(src, dst)
+    du.copy_tree(str(src), str(p_spxsrc))
 
 
 def execute_spx():
-    path_spx = pathlib.Path(spx_prj_dir)
+    path_spx = p(spx_prj_dir)
     os.chdir(path_spx)
-    print(pathlib.Path().cwd())
+    print(p().cwd())
 
-    path_build = path_spx / pathlib.Path("build")
+    path_build = path_spx / p("build")
     if path_build.exists():
         shutil.rmtree(path_build)
 
@@ -122,11 +129,11 @@ def execute_spx():
 
 def main():
 
-    path_doc_src = pathlib.Path("./spx_source")
+    path_doc_src = p("./spx_source")
 
     # make temporaly workspace
     path_tmp_ws = str(path_doc_src) + "_"
-    path_tmp_ws = pathlib.Path(path_tmp_ws)
+    path_tmp_ws = p(path_tmp_ws)
     print(path_tmp_ws)
     if path_tmp_ws.exists():
         shutil.rmtree(path_tmp_ws)
