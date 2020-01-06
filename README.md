@@ -9,7 +9,6 @@ generate layered sphinx document
 - python3 (confirmed: v3.7.3)
 - sphinx (confirmed: v2.3.1)
     - commonmark, recommonmark 
-    - Add a row to "conf.py":`master_doc = "srctree/index"`
 
 ## Usage
 1. Edit "pathdefine.json" as your environment.
